@@ -54,6 +54,22 @@ export default class DynamicValue {
             }
         ),
         new InputField(
+            'keyEnc',
+            'Key Encoding',
+            'Select',
+            {
+                persisted: true,
+                choices: {
+                    Hex: 'Hex',
+                    Base64: 'Base 64',
+                    Utf8: 'UTF 8 (default)',
+                    Utf16: 'UTF 16',
+                    Latin1: 'Latin1'
+                },
+                defaultValue: 'Utf8'
+            }
+        ),
+        new InputField(
             'iv',
             'Initialization Vector',
             'SecureValue',
@@ -117,8 +133,9 @@ export default class DynamicValue {
     evaluate() {
         if (
             !this.message ||
-            !this.key ||
             !this.msgEnc ||
+            !this.key ||
+            !this.keyEnc ||
             !this.pad ||
             !this.mode
         ) {
@@ -126,8 +143,11 @@ export default class DynamicValue {
         }
 
         const msgEnc = this.msgEnc || 'Utf8'
+        const keyEnc = this.keyEnc || 'Utf8'
         const padding = this.pad || 'Pkcs7'
         const mode = this.mode || 'CBC'
+
+        const key = CryptoJS.enc[keyEnc].parse(this.key)
 
         const options = {}
         let hasOptions = false
@@ -154,14 +174,14 @@ export default class DynamicValue {
         if (hasOptions) {
             decrypted = CryptoJS.AES.decrypt(
                 this.message,
-                this.key,
+                key,
                 options
             )
         }
         else {
             decrypted = CryptoJS.AES.decrypt(
                 this.message,
-                this.key
+                key
             )
         }
 
